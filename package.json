@@ -1,0 +1,82 @@
+{
+  "name": "interactive-window-history",
+  "displayName": "Interactive Window History Search",
+  "description": "Search and reuse everything you ran in the Jupyter Interactive Window — Ctrl+R reverse search like IPython, kept across sessions.",
+  "version": "0.1.0",
+  "publisher": "korolserhii",
+  "author": "Korol Serhii",
+  "license": "MIT",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/korolserhii/interactive-window-history"
+  },
+  "bugs": {
+    "url": "https://github.com/korolserhii/interactive-window-history/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Notebooks",
+    "Data Science",
+    "Other"
+  ],
+  "keywords": [
+    "jupyter",
+    "interactive window",
+    "history",
+    "reverse search",
+    "ipython",
+    "python",
+    "spyder"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "interactiveHistory.search",
+        "title": "Search History",
+        "category": "Interactive Window"
+      },
+      {
+        "command": "interactiveHistory.clear",
+        "title": "Clear History",
+        "category": "Interactive Window"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "interactiveHistory.search",
+        "key": "ctrl+r",
+        "mac": "ctrl+r",
+        "when": "activeEditor == 'workbench.editor.interactive'"
+      }
+    ],
+    "configuration": {
+      "title": "Interactive Window History",
+      "properties": {
+        "interactiveHistory.maxItems": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 50,
+          "maximum": 20000,
+          "description": "How many distinct commands to keep. The oldest are dropped first."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "test": "npm run compile && node --test out/test/history.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "~1.85.0",
+    "typescript": "^5.4.0"
+  }
+}
