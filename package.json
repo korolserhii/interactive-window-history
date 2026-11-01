@@ -2,7 +2,7 @@
   "name": "interactive-window-history",
   "displayName": "Interactive Window History Search",
   "description": "Search and reuse everything you ran in the Jupyter Interactive Window — Ctrl+R reverse search like IPython, kept across sessions.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "publisher": "korolserhii",
   "author": "Korol Serhii",
   "license": "MIT",

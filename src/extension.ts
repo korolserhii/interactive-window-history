@@ -60,14 +60,35 @@ export function activate(context: vscode.ExtensionContext): void {
         );
         return;
       }
-      const picked = await vscode.window.showQuickPick(
-        history.map((cmd) => ({ label: label(cmd), detail: detail(cmd), cmd })),
-        {
-          title: "Interactive Window history",
-          placeHolder: "Type to search everything you ran (newest first)",
-          matchOnDetail: true,
+      // 0.1.2: a 🗑 button on each row removes a wrong or useless command right from the list (author's request).
+      const remove: vscode.QuickInputButton = { iconPath: new vscode.ThemeIcon("trash"), tooltip: "Delete from history" };
+      type Item = vscode.QuickPickItem & { cmd: string };
+      const items = (h: string[]): Item[] =>
+        h.map((cmd) => ({ label: label(cmd), detail: detail(cmd), cmd, buttons: [remove] }));
+      const qp = vscode.window.createQuickPick<Item>();
+      qp.title = "Interactive Window history";
+      qp.placeholder = "Type to search everything you ran (newest first) · 🗑 deletes an entry";
+      qp.matchOnDetail = true;
+      qp.items = items(history);
+      qp.onDidTriggerItemButton(async (e) => {
+        const left = read().filter((c) => c !== e.item.cmd);
+        await write(left);
+        const value = qp.value;
+        qp.items = items(left);
+        qp.value = value; // keep the search text so the list does not jump
+        if (!left.length) {
+          qp.hide();
         }
-      );
+      });
+      const picked = await new Promise<Item | undefined>((resolve) => {
+        qp.onDidAccept(() => {
+          resolve(qp.selectedItems[0]);
+          qp.hide();
+        });
+        qp.onDidHide(() => resolve(undefined));
+        qp.show();
+      });
+      qp.dispose();
       if (!picked) {
         return;
       }

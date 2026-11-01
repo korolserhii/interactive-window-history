@@ -20,7 +20,7 @@ The built-in Up/Down arrows still work as before.
 - Up to 2000 distinct commands by default (`interactiveHistory.maxItems`).
 - History stays on your computer, in VS Code's own extension storage. Nothing is sent anywhere.
 
-**Interactive Window: Clear History** deletes it.
+Click 🗑 next to an entry in the Ctrl+R list to delete just that command; **Interactive Window: Clear History** deletes everything.
 
 ## Notes
 
