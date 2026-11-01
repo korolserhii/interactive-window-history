@@ -4,6 +4,8 @@ Search everything you ran in the Jupyter **Interactive Window** and put it back 
 
 Answers the long-standing request [microsoft/vscode-jupyter#4716](https://github.com/microsoft/vscode-jupyter/issues/4716).
 
+![Ctrl+R in the Interactive Window: typing "data" keeps only the commands that used it](images/screenshot.png)
+
 ## How to use
 
 1. Run code in the Interactive Window as usual (for example *Jupyter: Create Interactive Window*, or Shift+Enter on a `# %%` cell).
