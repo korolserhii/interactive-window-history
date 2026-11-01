@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { addCommand, detail, label } from "./history";
 
 const KEY = "interactiveHistory.commands";
+const DELETED = "interactiveHistory.deleted"; // deleted by hand: not brought back from a still-open window on reload
 // The Interactive Window is a notebook of this type; its input box is a text editor with this URI scheme.
 const IW_NOTEBOOK = "interactive";
 const IW_INPUT_SCHEME = "vscode-interactive-input";
@@ -14,13 +15,30 @@ export function activate(context: vscode.ExtensionContext): void {
   const read = (): string[] => context.globalState.get<string[]>(KEY, []);
   const write = (h: string[]) => context.globalState.update(KEY, h);
 
-  const record = (cells: readonly vscode.NotebookCell[]) => {
+  const deleted = (): string[] => context.globalState.get<string[]>(DELETED, []);
+  const norm = (t: string) => addCommand([], t, 1)[0] ?? "";
+
+  // fresh = the user just ran these cells; otherwise they are old cells of a window open at start-up
+  const record = async (cells: readonly vscode.NotebookCell[], fresh: boolean) => {
     let h = read();
+    let del = deleted();
     for (const cell of cells) {
-      if (cell.kind === vscode.NotebookCellKind.Code) {
-        h = addCommand(h, cell.document.getText(), maxItems());
+      if (cell.kind !== vscode.NotebookCellKind.Code) {
+        continue;
       }
+      const text = norm(cell.document.getText());
+      if (!text) {
+        continue;
+      }
+      if (del.includes(text)) {
+        if (!fresh) {
+          continue; // deleted from history but still visible in an open window — keep it deleted
+        }
+        del = del.filter((d) => d !== text); // run again on purpose — it comes back
+      }
+      h = addCommand(h, text, maxItems());
     }
+    await context.globalState.update(DELETED, del.slice(0, 2000));
     return write(h);
   };
 
@@ -32,7 +50,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
       const added = e.contentChanges.flatMap((c) => c.addedCells);
       if (added.length) {
-        void record(added);
+        void record(added, true);
       }
     })
   );
@@ -47,7 +65,7 @@ export function activate(context: vscode.ExtensionContext): void {
   // Windows already open when the extension starts (e.g. after a reload).
   for (const nb of vscode.workspace.notebookDocuments) {
     if (nb.notebookType === IW_NOTEBOOK) {
-      void record(nb.getCells());
+      void record(nb.getCells(), false);
     }
   }
 
@@ -73,6 +91,7 @@ export function activate(context: vscode.ExtensionContext): void {
       qp.onDidTriggerItemButton(async (e) => {
         const left = read().filter((c) => c !== e.item.cmd);
         await write(left);
+        await context.globalState.update(DELETED, [e.item.cmd, ...deleted().filter((d) => d !== e.item.cmd)].slice(0, 2000));
         const value = qp.value;
         qp.items = items(left);
         qp.value = value; // keep the search text so the list does not jump
@@ -102,6 +121,7 @@ export function activate(context: vscode.ExtensionContext): void {
         "Delete"
       );
       if (ok === "Delete") {
+        await context.globalState.update(DELETED, read().slice(0, 2000));
         await write([]);
       }
     })
