@@ -23,3 +23,10 @@ test("multi-line label and searchable detail", () => {
   assert.equal(detail(cmd), "print(i)");
   assert.equal(detail("x = 1"), undefined);
 });
+
+test("CRLF, trailing spaces and blank edges do not create duplicates", () => {
+  let h: string[] = [];
+  h = addCommand(h, "x = 1\r\nprint(x)  \r\n", 10);
+  h = addCommand(h, "\nx = 1\nprint(x)\n", 10);
+  assert.deepEqual(h, ["x = 1\nprint(x)"]);
+});

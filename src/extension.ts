@@ -37,6 +37,13 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  // 0.1.1: history saved by 0.1.0 could hold the same command twice (CRLF vs LF) — re-normalize it once on start.
+  const saved = read();
+  const cleaned = [...saved].reverse().reduce<string[]>((h, cmd) => addCommand(h, cmd, maxItems()), []);
+  if (cleaned.length !== saved.length) {
+    void write(cleaned);
+  }
+
   // Windows already open when the extension starts (e.g. after a reload).
   for (const nb of vscode.workspace.notebookDocuments) {
     if (nb.notebookType === IW_NOTEBOOK) {

@@ -3,7 +3,14 @@
 /** Adds a command to the front of the history: trims trailing whitespace, skips empty input,
  *  moves an existing identical command to the front instead of duplicating it, and caps the size. */
 export function addCommand(history: readonly string[], command: string, maxItems: number): string[] {
-  const text = command.replace(/\s+$/u, "");
+  // Same command typed on Windows (CRLF) and re-run from history (LF), or with stray spaces at line ends, is one command.
+  const text = command
+    .replace(/\r\n?/gu, "\n")
+    .split("\n")
+    .map((l) => l.replace(/\s+$/u, ""))
+    .join("\n")
+    .replace(/^\n+/u, "")
+    .replace(/\n+$/u, "");
   if (!text.trim()) {
     return history.slice();
   }
